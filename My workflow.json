@@ -1,0 +1,369 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        176
+      ],
+      "id": "9ab6e2f1-5309-40b0-b3f8-e587e910234c",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "url": "https://api.mercadopago.com/v1/payments/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "limit",
+              "value": "200"
+            },
+            {
+              "name": "begin_date",
+              "value": "={{ new Date(new Date().setMonth(new Date().getMonth() - 2)).toISOString() }}"
+            },
+            {
+              "name": "end_date",
+              "value": "={{ new Date().toISOString() }}"
+            },
+            {
+              "name": "sort",
+              "value": "date_created"
+            },
+            {
+              "name": "criteria",
+              "value": "desc"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        224,
+        176
+      ],
+      "id": "c2bbc1be-f767-4bd2-9ffc-826b770b921e",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "PkyLtVY5ed0lM3cD",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2d93fb39-87f1-4fb5-81e0-47b8fe3e8ab2",
+              "name": "Id",
+              "value": "={{ $('Split Out').item.json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "f99ca02b-f462-47fa-b943-66f76ed11a90",
+              "name": "Fecha",
+              "value": "={{ new Date($('Split Out').item.json.date_created).toLocaleString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) }}",
+              "type": "string"
+            },
+            {
+              "id": "ad364495-7b88-40ad-94b7-52502c43397c",
+              "name": "Comercio",
+              "value": "={{ $('Split Out').item.json.description === null && $('Split Out').item.json.payment_method_id === 'cvu' ? 'Transferencia' : $('Split Out').item.json.description === null && $('Split Out').item.json.payment_method_id === 'account_money' ? 'Pago con saldo MP' : $('Split Out').item.json.description ?? $('Split Out').item.json.description }}",
+              "type": "string"
+            },
+            {
+              "id": "e7f4a7c1-b20e-408a-a71a-532712c54235",
+              "name": "Monto",
+              "value": "={{ $('Split Out').item.json.transaction_amount }}",
+              "type": "string"
+            },
+            {
+              "id": "0f3b847f-eddc-4601-997c-94f7337b1549",
+              "name": "Categoria",
+              "value": "No esta programado aún",
+              "type": "string"
+            },
+            {
+              "id": "9b48259e-0070-4ee0-9e18-9c008c35fc19",
+              "name": "Medio de Pago",
+              "value": "={{ $('Split Out').item.json.payment_method_id === 'cvu' ? 'Transferencia bancaria' : $('Split Out').item.json.payment_method_id === 'account_money' ? 'Saldo MP' : $('Split Out').item.json.payment_method_id }}",
+              "type": "string"
+            },
+            {
+              "id": "1ce15ff3-d68c-44e8-9416-a6c3620e1057",
+              "name": "Estado",
+              "value": "={{ $json.status }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        896,
+        112
+      ],
+      "id": "2c8b91ca-1abc-4c4e-832a-d4b8a2a9f5a0",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "batchSize": 10,
+        "options": {
+          "reset": false
+        }
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        672,
+        176
+      ],
+      "id": "92de3967-cccf-43c9-a3c6-752a77d382d8",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "results",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        448,
+        176
+      ],
+      "id": "4d630547-d33d-4d78-8ee9-0fdafab2b09d",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "amount": 1
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1120,
+        112
+      ],
+      "id": "2692eb3e-7511-46da-add3-2d99dbfb431d",
+      "name": "Wait",
+      "webhookId": "2b1264c9-3f6a-413e-932a-476b7c75026d"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1alZG_ii40gtIg3R8eltIhAC_EnYn0UVeo2xMKfuvpYA",
+          "mode": "list",
+          "cachedResultName": "Gastos ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1alZG_ii40gtIg3R8eltIhAC_EnYn0UVeo2xMKfuvpYA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1alZG_ii40gtIg3R8eltIhAC_EnYn0UVeo2xMKfuvpYA/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "Id"
+          ],
+          "schema": [
+            {
+              "id": "Id",
+              "displayName": "Id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Comercio",
+              "displayName": "Comercio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Fecha",
+              "displayName": "Fecha",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Monto",
+              "displayName": "Monto",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Categoria",
+              "displayName": "Categoria",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Medio de Pago",
+              "displayName": "Medio de Pago",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Estado",
+              "displayName": "Estado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1344,
+        176
+      ],
+      "id": "57f01e2e-f300-4263-83ed-d10ee2b8861a",
+      "name": "Append or update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PJE0LeYWfkPsUFZp",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append or update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "f3d36a9f-93ee-46af-86eb-dd44b214cdce",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b72ac5dc60b07abd603325fc1036666b9c5136ecabb8feccce56b674974174cd"
+  },
+  "id": "RThaHsTRLRYPjRQe",
+  "tags": []
+}
