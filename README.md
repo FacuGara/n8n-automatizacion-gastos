@@ -5,10 +5,10 @@ Sistema de finanzas personales automatizado que extrae, clasifica y registra tod
 ## 📸 Screenshots
 
 ### Flujo en n8n
-![Flujo n8n](flujo-n8n.png)
+![Flujo n8n](flujo-n8n.jpg)
 
 ### Resultado en Google Sheets
-![Google Sheets](google-sheets.png)
+![Google Sheets](google-sheets.jpg)
 
 ## 🎯 ¿Qué hace?
 
